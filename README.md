@@ -35,9 +35,10 @@ mvn spring-boot:run
 ### 
 📌 Layout do Projeto
 <div align="center">
-<img width="934" alt="Image" src="https://github.com/user-attachments/assets/7aa3f1c9-02b7-4bef-87b8-962245f7c4b9" />
+<img width="953" height="396" alt="Image" src="https://github.com/user-attachments/assets/87f7e753-965b-4a68-9cc5-8f73a30d507e" />
 </div>
 
 ---
 Feito com por Paulo Ricardo
 #Java #SpringBoot #WebSocket #ProjetosPessoais #Programação
+
