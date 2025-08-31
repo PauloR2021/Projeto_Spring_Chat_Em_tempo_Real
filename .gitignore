@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+#### Arquivos do App ####
+chat_history.txt
 ### STS ###
 .apt_generated
 .classpath
