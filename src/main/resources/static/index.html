@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-  
 </head>
 <body>
 
@@ -19,23 +18,22 @@
     <div id="chat"></div>
     <input type="text" id="message" placeholder="Digite Sua Mensagem">
     <button onclick="sendMessage()">Enviar</button>
+    <button onclick="finalizarChat()">Finalizar Chat</button>
 
     <script>
-        //Criando as Váriaveis de Envio para  o Chat
         let stompClient = null;
-        let username = "";
-        
-        //Função para Criar o log dos Envios
+
+        // Função para criar o log dos eventos
         function logMessage(text) {
             const log = document.getElementById("log");
             const p = document.createElement("p");
             p.textContent = text;
             log.appendChild(p);
-            log.scrollTop = log.scrollHeight; // rola para baixo automaticamente
+            log.scrollTop = log.scrollHeight;
             console.log(text);
         }
 
-        //Função para Conectar ao Servidor do chat
+        // Conectar ao WebSocket
         function connect() {
             const socket = new SockJS('/chat-websocket');
             stompClient = Stomp.over(socket);
@@ -53,33 +51,74 @@
             });
         }
 
-        //Função para Enviar as Mensage no Chat
+        // Enviar mensagem
         function sendMessage() {
-            if (!username) {
-                username = document.getElementById("username").value || "Anônimo";
-            }
-            const content = document.getElementById("message").value;
+            const sender = document.getElementById("username").value.trim();
+            const content = document.getElementById("message").value.trim();
 
-            if (!content.trim()) {
-                logMessage("⚠️ Mensagem vazia não enviada.");
+            if (!sender || !content) {
+                alert("Preencha todos os campos!");
                 return;
             }
 
-            stompClient.send("/app/sendMessage", {}, JSON.stringify({'sender': username, 'content': content}));
-            logMessage("📤 Mensagem enviada: " + content);
+            stompClient.send("/app/sendMessage", {}, JSON.stringify({
+                'sender': sender,
+                'content': content
+            }));
 
             document.getElementById("message").value = '';
         }
 
-
-
-        //Função para Mostrar as Mensagens do Chat
+        // Mostrar mensagens no chat
         function showMessage(message) {
             const chat = document.getElementById("chat");
             const p = document.createElement("p");
             p.textContent = message;
             chat.appendChild(p);
             chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Finalizar chat e baixar histórico
+        function finalizarChat() {
+            const username = document.getElementById('username');
+            const message = document.getElementById("message");
+            const chat = document.getElementById("chat");
+            const p = document.createElement("p");
+
+            fetch('/chat/finalizar', { method: 'POST' })
+            .then(response => {
+                if(response.ok){
+                    alert("Chat finalizado e arquivo salvo!");
+
+                    // Baixar o histórico
+                    const link = document.createElement('a');
+                    link.href = '/chat/download';
+                    link.download = 'chat_history.txt';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Desconectar WebSocket
+                    if(stompClient) {
+                        stompClient.disconnect();
+                        logMessage("🛑 Chat desconectado.");
+                    }
+                    
+
+                    //Limpando os Campos de Chat
+                    username.value = "";
+                    message.value = "";
+                    chat.value ="";
+                    p.value = "";
+
+                } else {
+                    alert("Erro ao finalizar o chat.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao finalizar o chat.");
+            });
         }
 
         // Conectar automaticamente ao carregar a página
