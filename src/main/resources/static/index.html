@@ -1,11 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="PT-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chat em Tempo Real</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  
 </head>
 <body>
-    
+
+    <h2>Chat em Tempo Real</h2>
+
+    <div id="log"></div>
+
+    <input type="text" id="username" placeholder="Seu Nome"><br>
+    <div id="chat"></div>
+    <input type="text" id="message" placeholder="Digite Sua Mensagem">
+    <button onclick="sendMessage()">Enviar</button>
+
+    <script>
+        //Criando as Váriaveis de Envio para  o Chat
+        let stompClient = null;
+        let username = "";
+        
+        //Função para Criar o log dos Envios
+        function logMessage(text) {
+            const log = document.getElementById("log");
+            const p = document.createElement("p");
+            p.textContent = text;
+            log.appendChild(p);
+            log.scrollTop = log.scrollHeight; // rola para baixo automaticamente
+            console.log(text);
+        }
+
+        //Função para Conectar ao Servidor do chat
+        function connect() {
+            const socket = new SockJS('/chat-websocket');
+            stompClient = Stomp.over(socket);
+
+            logMessage("🔄 Conectando ao WebSocket...");
+
+            stompClient.connect({}, function () {
+                logMessage("✅ Conectado com sucesso!");
+                stompClient.subscribe('/topic/messages', function (messageOutput) {
+                    const msg = JSON.parse(messageOutput.body);
+                    showMessage(msg.sender + ": " + msg.content);
+                });
+            }, function (error) {
+                logMessage("❌ Erro na conexão: " + error);
+            });
+        }
+
+        //Função para Enviar as Mensage no Chat
+        function sendMessage() {
+            if (!username) {
+                username = document.getElementById("username").value || "Anônimo";
+            }
+            const content = document.getElementById("message").value;
+
+            if (!content.trim()) {
+                logMessage("⚠️ Mensagem vazia não enviada.");
+                return;
+            }
+
+            stompClient.send("/app/sendMessage", {}, JSON.stringify({'sender': username, 'content': content}));
+            logMessage("📤 Mensagem enviada: " + content);
+
+            document.getElementById("message").value = '';
+        }
+
+
+
+        //Função para Mostrar as Mensagens do Chat
+        function showMessage(message) {
+            const chat = document.getElementById("chat");
+            const p = document.createElement("p");
+            p.textContent = message;
+            chat.appendChild(p);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Conectar automaticamente ao carregar a página
+        connect();
+    </script>
+
 </body>
 </html>
