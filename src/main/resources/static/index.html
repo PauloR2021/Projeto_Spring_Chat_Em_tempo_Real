@@ -17,8 +17,8 @@
     <input type="text" id="username" placeholder="Seu Nome"><br>
     <div id="chat"></div>
     <input type="text" id="message" placeholder="Digite Sua Mensagem">
-    <button onclick="sendMessage()">Enviar</button>
-    <button onclick="finalizarChat()">Finalizar Chat</button>
+    <button class="btn enviar" onclick="sendMessage()">Enviar</button>
+    <button class="btn finalizar"  onclick="finalizarChat()">Finalizar Chat</button>
 
     <script>
         let stompClient = null;
